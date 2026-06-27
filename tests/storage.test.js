@@ -80,6 +80,7 @@ test('persistOutputToSupabase uploads JSON, HTML, and PNG outputs', async () => 
     'posters/westie-test/poster.png',
     'posters/westie-test/copy.md'
   ]);
+  assert.equal(uploads.find((item) => item.objectPath.endsWith('/copy.md')).contentType, 'text/plain; charset=utf-8');
   assert.match(result.files.markdown.url, /copy\.md$/);
   assert.match(result.files.png.url, /poster\.png$/);
   assert.match(result.files.png.downloadUrl, /download=poster\.png$/);
