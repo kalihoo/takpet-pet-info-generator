@@ -81,3 +81,52 @@ test('persistOutputToSupabase uploads JSON, HTML, and PNG outputs', async () => 
   assert.match(result.files.png.downloadUrl, /download=poster\.png$/);
   await rm(outputRoot, { recursive: true, force: true });
 });
+
+test('persistOutputToSupabase uses ASCII object paths for Chinese slugs', async () => {
+  const outputRoot = await mkdtemp(path.join(tmpdir(), 'takpet-storage-cn-'));
+  await writeFile(path.join(outputRoot, 'content.json'), '{"ok":true}', 'utf8');
+  await writeFile(path.join(outputRoot, 'poster.html'), '<html></html>', 'utf8');
+  await writeFile(path.join(outputRoot, 'poster.png'), 'png', 'utf8');
+
+  let firstObjectPath;
+  const client = {
+    storage: {
+      async createBucket() {
+        return { data: {}, error: null };
+      },
+      from(bucket) {
+        return {
+          async upload(objectPath) {
+            firstObjectPath ||= objectPath;
+            return { data: { path: objectPath }, error: null };
+          },
+          getPublicUrl(objectPath) {
+            return { data: { publicUrl: `https://cdn.example/${bucket}/${objectPath}` } };
+          }
+        };
+      }
+    }
+  };
+
+  const result = await persistOutputToSupabase({
+    slug: '雪纳瑞',
+    dir: outputRoot,
+    files: {
+      json: path.join(outputRoot, 'content.json'),
+      html: path.join(outputRoot, 'poster.html'),
+      png: path.join(outputRoot, 'poster.png')
+    }
+  }, {
+    client,
+    env: {
+      SUPABASE_URL: 'https://example.supabase.co',
+      SUPABASE_SERVICE_ROLE_KEY: 'service-key',
+      SUPABASE_STORAGE_BUCKET: 'takpet-posters'
+    }
+  });
+
+  assert.doesNotMatch(result.path, /雪纳瑞/);
+  assert.match(result.path, /^posters\/pet-[a-f0-9]{8}-\d{8}T\d{6}Z$/);
+  assert.match(firstObjectPath, /^posters\/pet-[a-f0-9]{8}-\d{8}T\d{6}Z\/content\.json$/);
+  await rm(outputRoot, { recursive: true, force: true });
+});

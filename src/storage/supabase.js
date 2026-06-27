@@ -1,4 +1,5 @@
 import { readFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { createClient } from '@supabase/supabase-js';
 
@@ -116,13 +117,18 @@ function createRunId(slug) {
 }
 
 function safeObjectSegment(value) {
-  return String(value || 'pet')
+  const original = String(value || 'pet');
+  const ascii = original
     .trim()
     .normalize('NFKC')
     .replace(/\s+/g, '-')
-    .replace(/[^\p{Letter}\p{Number}-]+/gu, '')
+    .replace(/[^A-Za-z0-9-]+/g, '')
     .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '') || 'pet';
+    .replace(/^-|-$/g, '');
+  if (ascii) {
+    return ascii;
+  }
+  return `pet-${createHash('sha1').update(original).digest('hex').slice(0, 8)}`;
 }
 
 function trimSlashes(value) {
