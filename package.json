@@ -1,0 +1,21 @@
+{
+  "name": "takpet-pet-info-generator",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "TakPet 宠物信息自动化生成与固定模板海报导出工具",
+  "scripts": {
+    "start": "node src/server.js",
+    "generate": "node src/cli.js",
+    "test": "TAKPET_FORCE_LOCAL=1 node --test tests/*.test.js",
+    "test:integration": "TAKPET_FORCE_LOCAL=1 node --test tests/integration.test.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^4.19.2",
+    "playwright": "1.54.0"
+  }
+}
