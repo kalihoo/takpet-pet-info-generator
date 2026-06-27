@@ -38,13 +38,14 @@ export function renderPosterHtml(content, options = {}) {
   <meta charset="utf-8">
   <meta name="viewport" content="width=1080, initial-scale=1">
   <title>${escapeHtml(safe.title)} - TakPet</title>
+  ${renderCjkFontLinks()}
   <style>
     * { box-sizing: border-box; }
     body {
       margin: 0;
       min-height: 100vh;
       background: #f2f4ee;
-      font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", Arial, sans-serif;
+      font-family: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", Arial, sans-serif;
       color: #17211c;
     }
     .poster {
@@ -444,12 +445,13 @@ function renderContentPackPosterHtml(pack, options = {}) {
   <meta charset="utf-8">
   <meta name="viewport" content="width=1080, initial-scale=1">
   <title>${escapeHtml(pack.profile.title)} - TakPet</title>
+  ${renderCjkFontLinks()}
   <style>
     * { box-sizing: border-box; }
     body {
       margin: 0;
       background: #edf2ea;
-      font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", Arial, sans-serif;
+      font-family: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", Arial, sans-serif;
       color: #162019;
     }
     .pack-poster {
@@ -720,6 +722,12 @@ function normalizeContent(content) {
     aliases: content.aliases || [content.breed || '犬种'],
     disclaimer: content.disclaimer || '内容仅作宠物科普参考。'
   };
+}
+
+function renderCjkFontLinks() {
+  return `<link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">`;
 }
 
 function escapeHtml(value) {

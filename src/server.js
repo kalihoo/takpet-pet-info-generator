@@ -6,11 +6,13 @@ import { fileURLToPath } from 'node:url';
 import { getDefaultOutputRoot } from './config/runtime.js';
 import { generatePetContent } from './content/generator.js';
 import { exportPoster } from './render/exporter.js';
-import { persistOutputToSupabase } from './storage/supabase.js';
+import { downloadSupabaseObject, persistOutputToSupabase } from './storage/supabase.js';
 
 export function createApp(options = {}) {
   const app = express();
   const outputRoot = options.outputRoot || getDefaultOutputRoot();
+  const persistOutput = options.persistOutput || persistOutputToSupabase;
+  const readStoredFile = options.readStoredFile || downloadSupabaseObject;
 
   app.use(express.json({ limit: '1mb' }));
   app.use('/assets', express.static(path.resolve('assets')));
@@ -29,8 +31,8 @@ export function createApp(options = {}) {
         contentTypes: request.body?.contentTypes
       });
       const output = await exportPoster(content, { outputRoot });
-      const storage = await persistOutputToSupabase(output);
-      const urls = buildOutputUrls(output, storage);
+      const storage = await persistOutput(output);
+      const urls = buildOutputUrls(output, storage, request);
       response.json({
         content,
         contentPack: content.contentPack,
@@ -47,16 +49,35 @@ export function createApp(options = {}) {
     }
   });
 
+  app.get('/api/preview/:kind', async (request, response) => {
+    const kind = request.params.kind;
+    const objectPath = String(request.query.path || '');
+    const meta = getPreviewMeta(kind);
+    if (!meta || !isSafeStoragePath(objectPath)) {
+      response.status(400).json({ error: 'invalid preview request' });
+      return;
+    }
+    try {
+      const body = await readStoredFile(objectPath);
+      response.setHeader('content-type', meta.contentType);
+      response.setHeader('content-disposition', `inline; filename="${meta.fileName}"`);
+      response.send(body);
+    } catch (error) {
+      response.status(404).json({ error: error.message });
+    }
+  });
+
   return app;
 }
 
-function buildOutputUrls(output, storage) {
+function buildOutputUrls(output, storage, request) {
   if (storage?.files) {
+    const origin = getRequestOrigin(request);
     return {
-      html: storage.files.html?.url,
+      html: buildPreviewUrl(origin, 'html', storage.files.html?.path),
       png: storage.files.png?.url,
       json: storage.files.json?.url,
-      markdown: storage.files.markdown?.url,
+      markdown: buildPreviewUrl(origin, 'markdown', storage.files.markdown?.path),
       downloads: {
         html: storage.files.html?.downloadUrl,
         png: storage.files.png?.downloadUrl,
@@ -71,6 +92,34 @@ function buildOutputUrls(output, storage) {
     json: `/outputs/${encodeURIComponent(output.slug)}/content.json`,
     markdown: `/outputs/${encodeURIComponent(output.slug)}/copy.md`
   };
+}
+
+function buildPreviewUrl(origin, kind, objectPath) {
+  if (!origin || !objectPath) {
+    return null;
+  }
+  const params = new URLSearchParams({ path: objectPath });
+  return `${origin}/api/preview/${kind}?${params.toString()}`;
+}
+
+function getRequestOrigin(request) {
+  if (!request) {
+    return '';
+  }
+  const proto = request.headers['x-forwarded-proto'] || request.protocol || 'http';
+  return `${proto}://${request.get('host')}`;
+}
+
+function getPreviewMeta(kind) {
+  const map = {
+    html: { contentType: 'text/html; charset=utf-8', fileName: 'poster.html' },
+    markdown: { contentType: 'text/markdown; charset=utf-8', fileName: 'copy.md' }
+  };
+  return map[kind] || null;
+}
+
+function isSafeStoragePath(value) {
+  return Boolean(value && !value.includes('..') && !value.startsWith('/') && /^[A-Za-z0-9/_ .-]+$/.test(value));
 }
 
 function renderHomePage() {

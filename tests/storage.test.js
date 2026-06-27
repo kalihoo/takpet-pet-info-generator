@@ -80,7 +80,9 @@ test('persistOutputToSupabase uploads JSON, HTML, and PNG outputs', async () => 
     'posters/westie-test/poster.png',
     'posters/westie-test/copy.md'
   ]);
-  assert.equal(uploads.find((item) => item.objectPath.endsWith('/copy.md')).contentType, 'text/plain');
+  assert.equal(uploads.find((item) => item.objectPath.endsWith('/content.json')).contentType, 'application/json; charset=utf-8');
+  assert.equal(uploads.find((item) => item.objectPath.endsWith('/poster.html')).contentType, 'text/html; charset=utf-8');
+  assert.equal(uploads.find((item) => item.objectPath.endsWith('/copy.md')).contentType, 'text/markdown; charset=utf-8');
   assert.match(result.files.markdown.url, /copy\.md$/);
   assert.match(result.files.png.url, /poster\.png$/);
   assert.match(result.files.png.downloadUrl, /download=poster\.png$/);
@@ -137,7 +139,17 @@ test('persistOutputToSupabase updates an existing bucket with markdown-compatibl
     }
   });
 
-  assert.deepEqual(updatedOptions.allowedMimeTypes, ['application/json', 'text/html', 'image/png', 'text/plain']);
+  assert.deepEqual(updatedOptions.allowedMimeTypes, [
+    'application/json',
+    'application/json; charset=utf-8',
+    'text/html',
+    'text/html; charset=utf-8',
+    'image/png',
+    'text/plain',
+    'text/plain; charset=utf-8',
+    'text/markdown',
+    'text/markdown; charset=utf-8'
+  ]);
   await rm(outputRoot, { recursive: true, force: true });
 });
 

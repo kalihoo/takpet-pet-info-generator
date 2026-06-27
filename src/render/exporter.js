@@ -70,6 +70,7 @@ async function writeScreenshot(target, htmlPath) {
   try {
     const page = await browser.newPage({ viewport: { width: 1080, height: 1440 }, deviceScaleFactor: 1 });
     await page.goto(pathToFileURL(htmlPath).href, { waitUntil: 'networkidle' });
+    await page.evaluate(() => document.fonts.ready.then(() => true));
     await page.screenshot({ path: target, type: 'png', fullPage: false });
   } finally {
     await browser.close();

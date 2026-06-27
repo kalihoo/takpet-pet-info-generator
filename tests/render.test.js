@@ -45,6 +45,13 @@ test('renderPosterHtml locks the TakPet logo and dog image assets into the poste
   assert.match(html, /1440px/);
 });
 
+test('renderPosterHtml loads a CJK webfont for serverless Chromium screenshots', () => {
+  const html = renderPosterHtml(sampleContent, { breedImagePath: 'assets/breed.png' });
+
+  assert.match(html, /fonts\.googleapis\.com\/css2\?family=Noto\+Sans\+SC/);
+  assert.match(html, /"Noto Sans SC"/);
+});
+
 test('renderPosterHtml does not reuse the TakPet logo as the breed image fallback', () => {
   const html = renderPosterHtml(sampleContent);
 

@@ -77,6 +77,40 @@ test('POST /api/generate supports cat and exotic content packs', async () => {
   await rm(outputRoot, { recursive: true, force: true });
 });
 
+test('POST /api/generate returns app preview links for stored HTML and Markdown', async () => {
+  const outputRoot = await mkdtemp(path.join(tmpdir(), 'takpet-api-preview-'));
+  const app = createApp({
+    outputRoot,
+    persistOutput: async () => ({
+      bucket: 'takpet-posters',
+      path: 'posters/westie-test',
+      public: true,
+      files: {
+        html: { path: 'posters/westie-test/poster.html', url: 'https://cdn.example/poster.html', downloadUrl: 'https://cdn.example/poster.html?download=poster.html' },
+        png: { path: 'posters/westie-test/poster.png', url: 'https://cdn.example/poster.png', downloadUrl: 'https://cdn.example/poster.png?download=poster.png' },
+        json: { path: 'posters/westie-test/content.json', url: 'https://cdn.example/content.json', downloadUrl: 'https://cdn.example/content.json?download=content.json' },
+        markdown: { path: 'posters/westie-test/copy.md', url: 'https://cdn.example/copy.md', downloadUrl: 'https://cdn.example/copy.md?download=copy.md' }
+      }
+    })
+  });
+  const server = app.listen(0);
+  const port = server.address().port;
+
+  const response = await fetch(`http://127.0.0.1:${port}/api/generate`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ breed: '雪纳瑞', species: 'dog' })
+  });
+  const body = await response.json();
+
+  server.close();
+  assert.equal(response.status, 200);
+  assert.match(body.output.urls.html, /^http:\/\/127\.0\.0\.1:\d+\/api\/preview\/html\?/);
+  assert.match(body.output.urls.markdown, /^http:\/\/127\.0\.0\.1:\d+\/api\/preview\/markdown\?/);
+  assert.equal(body.output.urls.downloads.html, 'https://cdn.example/poster.html?download=poster.html');
+  await rm(outputRoot, { recursive: true, force: true });
+});
+
 test('CLI generates JSON, HTML, PNG, and Markdown files for a named cat', async () => {
   const outputRoot = await mkdtemp(path.join(tmpdir(), 'takpet-cli-'));
 

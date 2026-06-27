@@ -5,6 +5,17 @@ import { createClient } from '@supabase/supabase-js';
 
 const DEFAULT_BUCKET = 'takpet-posters';
 const DEFAULT_PREFIX = 'posters';
+const ALLOWED_MIME_TYPES = [
+  'application/json',
+  'application/json; charset=utf-8',
+  'text/html',
+  'text/html; charset=utf-8',
+  'image/png',
+  'text/plain',
+  'text/plain; charset=utf-8',
+  'text/markdown',
+  'text/markdown; charset=utf-8'
+];
 
 export function isSupabaseStorageEnabled(env = process.env) {
   return Boolean(env.SUPABASE_URL && getSupabaseServerKey(env) && env.SUPABASE_STORAGE_BUCKET);
@@ -39,10 +50,10 @@ export async function persistOutputToSupabase(output, options = {}) {
   await ensureBucket(client, bucket, publicBucket, env);
 
   const files = [
-    { key: 'json', filePath: output.files.json, fileName: 'content.json', contentType: 'application/json' },
-    { key: 'html', filePath: output.files.html, fileName: 'poster.html', contentType: 'text/html' },
+    { key: 'json', filePath: output.files.json, fileName: 'content.json', contentType: 'application/json; charset=utf-8' },
+    { key: 'html', filePath: output.files.html, fileName: 'poster.html', contentType: 'text/html; charset=utf-8' },
     { key: 'png', filePath: output.files.png, fileName: 'poster.png', contentType: 'image/png' },
-    { key: 'markdown', filePath: output.files.markdown, fileName: 'copy.md', contentType: 'text/plain' }
+    { key: 'markdown', filePath: output.files.markdown, fileName: 'copy.md', contentType: 'text/markdown; charset=utf-8' }
   ].filter((file) => file.filePath);
 
   const uploaded = {};
@@ -74,7 +85,7 @@ async function ensureBucket(client, bucket, publicBucket, env) {
 
   const bucketOptions = {
     public: publicBucket,
-    allowedMimeTypes: ['application/json', 'text/html', 'image/png', 'text/plain'],
+    allowedMimeTypes: ALLOWED_MIME_TYPES,
     fileSizeLimit: '10MB'
   };
   const { error } = await client.storage.createBucket(bucket, bucketOptions);
@@ -91,6 +102,18 @@ async function ensureBucket(client, bucket, publicBucket, env) {
       throw new Error(`Supabase bucket update failed: ${updateError.message}`);
     }
   }
+}
+
+export async function downloadSupabaseObject(objectPath, options = {}) {
+  const env = options.env || process.env;
+  const client = options.client || createSupabaseStorageClient(env);
+  const bucket = env.SUPABASE_STORAGE_BUCKET || DEFAULT_BUCKET;
+  const { data, error } = await client.storage.from(bucket).download(objectPath);
+  if (error) {
+    throw new Error(`Supabase download failed for ${objectPath}: ${error.message}`);
+  }
+  const arrayBuffer = await data.arrayBuffer();
+  return Buffer.from(arrayBuffer);
 }
 
 async function buildFileUrl(client, bucket, objectPath, fileName, publicBucket, env) {
