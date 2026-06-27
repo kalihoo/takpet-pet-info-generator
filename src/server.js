@@ -157,9 +157,13 @@ function renderHomePage() {
 </html>`;
 }
 
+const app = createApp();
+
+export default app;
+
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const port = Number(process.env.PORT || 3000);
-  createApp().listen(port, () => {
+  app.listen(port, () => {
     console.log(`TakPet generator listening on http://0.0.0.0:${port}`);
   });
 }
