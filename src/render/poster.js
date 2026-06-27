@@ -461,7 +461,7 @@ function renderContentPackPosterHtml(pack, options = {}) {
       background: #fffdf5;
       padding: 34px;
       display: grid;
-      grid-template-rows: 314px 154px 330px 280px 202px 48px;
+      grid-template-rows: 330px 126px 300px 250px 180px 42px;
       gap: 16px;
     }
     .pack-hero {
@@ -487,8 +487,8 @@ function renderContentPackPosterHtml(pack, options = {}) {
     .pack-title h1 {
       margin: 0;
       color: #145226;
-      font-size: 58px;
-      line-height: 1.04;
+      font-size: 50px;
+      line-height: 1.05;
       letter-spacing: 0;
       font-weight: 950;
       display: -webkit-box;
@@ -497,24 +497,24 @@ function renderContentPackPosterHtml(pack, options = {}) {
       overflow: hidden;
     }
     .pack-title h2 {
-      margin: 12px 0 14px;
-      font-size: 25px;
+      margin: 10px 0 10px;
+      font-size: 23px;
       line-height: 1.25;
       font-weight: 900;
     }
     .pack-summary {
       margin: 0;
-      font-size: 18px;
-      line-height: 1.4;
+      font-size: 17px;
+      line-height: 1.34;
       font-weight: 650;
       display: -webkit-box;
-      -webkit-line-clamp: 4;
+      -webkit-line-clamp: 3;
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
     .pack-visual {
       width: 316px;
-      height: 270px;
+      height: 286px;
       object-fit: cover;
       border-radius: 8px;
       border: 1px solid #d8e2d3;
@@ -543,9 +543,9 @@ function renderContentPackPosterHtml(pack, options = {}) {
       background: #eef4ea;
       border-left: 7px solid #79a95c;
       border-radius: 8px;
-      padding: 16px 12px;
-      font-size: 18px;
-      line-height: 1.32;
+      padding: 14px 12px;
+      font-size: 17px;
+      line-height: 1.28;
       font-weight: 900;
       overflow: hidden;
     }
@@ -558,7 +558,7 @@ function renderContentPackPosterHtml(pack, options = {}) {
       background: #fbf7ed;
       border: 1px solid #ece5d5;
       border-radius: 8px;
-      padding: 16px 14px;
+      padding: 14px 14px;
       overflow: hidden;
     }
     .pack-step b {
@@ -572,8 +572,8 @@ function renderContentPackPosterHtml(pack, options = {}) {
       font-size: 20px;
     }
     .pack-step h3 {
-      margin: 10px 0 5px;
-      font-size: 22px;
+      margin: 8px 0 5px;
+      font-size: 21px;
       line-height: 1.15;
       font-weight: 950;
     }
@@ -586,11 +586,11 @@ function renderContentPackPosterHtml(pack, options = {}) {
     }
     .pack-step p {
       margin: 0;
-      font-size: 17px;
-      line-height: 1.42;
+      font-size: 16px;
+      line-height: 1.38;
       font-weight: 650;
       display: -webkit-box;
-      -webkit-line-clamp: 6;
+      -webkit-line-clamp: 5;
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
@@ -603,20 +603,20 @@ function renderContentPackPosterHtml(pack, options = {}) {
       border: 1px solid #e0dfd2;
       background: #fbfaf1;
       border-radius: 8px;
-      padding: 18px 20px;
+      padding: 16px 18px;
       overflow: hidden;
     }
     .pack-card h3 {
       margin: 0 0 12px;
       color: #145226;
-      font-size: 25px;
+      font-size: 23px;
       font-weight: 950;
     }
     .pack-card ul {
       margin: 0;
       padding-left: 20px;
-      font-size: 17px;
-      line-height: 1.48;
+      font-size: 16px;
+      line-height: 1.38;
       font-weight: 700;
     }
     .media-item {
@@ -637,22 +637,22 @@ function renderContentPackPosterHtml(pack, options = {}) {
     .copy-box {
       background: #eef4ea;
       border-radius: 8px;
-      padding: 20px 22px;
+      padding: 18px 20px;
       overflow: hidden;
     }
     .copy-box h3 {
       margin: 0 0 10px;
       color: #145226;
-      font-size: 25px;
+      font-size: 23px;
       font-weight: 950;
     }
     .copy-box p {
       margin: 0;
-      font-size: 19px;
-      line-height: 1.45;
+      font-size: 17px;
+      line-height: 1.36;
       font-weight: 800;
       display: -webkit-box;
-      -webkit-line-clamp: 5;
+      -webkit-line-clamp: 4;
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
