@@ -42,7 +42,7 @@ export async function persistOutputToSupabase(output, options = {}) {
     { key: 'json', filePath: output.files.json, fileName: 'content.json', contentType: 'application/json' },
     { key: 'html', filePath: output.files.html, fileName: 'poster.html', contentType: 'text/html' },
     { key: 'png', filePath: output.files.png, fileName: 'poster.png', contentType: 'image/png' },
-    { key: 'markdown', filePath: output.files.markdown, fileName: 'copy.md', contentType: 'text/plain; charset=utf-8' }
+    { key: 'markdown', filePath: output.files.markdown, fileName: 'copy.md', contentType: 'text/plain' }
   ].filter((file) => file.filePath);
 
   const uploaded = {};
@@ -72,14 +72,24 @@ async function ensureBucket(client, bucket, publicBucket, env) {
     return;
   }
 
-  const { error } = await client.storage.createBucket(bucket, {
+  const bucketOptions = {
     public: publicBucket,
     allowedMimeTypes: ['application/json', 'text/html', 'image/png', 'text/plain'],
     fileSizeLimit: '10MB'
-  });
+  };
+  const { error } = await client.storage.createBucket(bucket, bucketOptions);
 
-  if (error && !isBucketAlreadyExistsError(error)) {
+  if (!error) {
+    return;
+  }
+  if (!isBucketAlreadyExistsError(error)) {
     throw new Error(`Supabase bucket setup failed: ${error.message}`);
+  }
+  if (typeof client.storage.updateBucket === 'function') {
+    const { error: updateError } = await client.storage.updateBucket(bucket, bucketOptions);
+    if (updateError) {
+      throw new Error(`Supabase bucket update failed: ${updateError.message}`);
+    }
   }
 }
 

@@ -80,10 +80,64 @@ test('persistOutputToSupabase uploads JSON, HTML, and PNG outputs', async () => 
     'posters/westie-test/poster.png',
     'posters/westie-test/copy.md'
   ]);
-  assert.equal(uploads.find((item) => item.objectPath.endsWith('/copy.md')).contentType, 'text/plain; charset=utf-8');
+  assert.equal(uploads.find((item) => item.objectPath.endsWith('/copy.md')).contentType, 'text/plain');
   assert.match(result.files.markdown.url, /copy\.md$/);
   assert.match(result.files.png.url, /poster\.png$/);
   assert.match(result.files.png.downloadUrl, /download=poster\.png$/);
+  await rm(outputRoot, { recursive: true, force: true });
+});
+
+test('persistOutputToSupabase updates an existing bucket with markdown-compatible MIME types', async () => {
+  const outputRoot = await mkdtemp(path.join(tmpdir(), 'takpet-storage-existing-'));
+  await writeFile(path.join(outputRoot, 'content.json'), '{"ok":true}', 'utf8');
+  await writeFile(path.join(outputRoot, 'poster.html'), '<html></html>', 'utf8');
+  await writeFile(path.join(outputRoot, 'poster.png'), 'png', 'utf8');
+  await writeFile(path.join(outputRoot, 'copy.md'), '# copy', 'utf8');
+
+  let updatedOptions;
+  const client = {
+    storage: {
+      async createBucket() {
+        return { data: null, error: { statusCode: 409, message: 'Bucket already exists' } };
+      },
+      async updateBucket(bucket, options) {
+        assert.equal(bucket, 'takpet-posters');
+        updatedOptions = options;
+        return { data: {}, error: null };
+      },
+      from(bucket) {
+        return {
+          async upload() {
+            return { data: {}, error: null };
+          },
+          getPublicUrl(objectPath) {
+            return { data: { publicUrl: `https://cdn.example/${bucket}/${objectPath}` } };
+          }
+        };
+      }
+    }
+  };
+
+  await persistOutputToSupabase({
+    slug: 'westie',
+    dir: outputRoot,
+    files: {
+      json: path.join(outputRoot, 'content.json'),
+      html: path.join(outputRoot, 'poster.html'),
+      png: path.join(outputRoot, 'poster.png'),
+      markdown: path.join(outputRoot, 'copy.md')
+    }
+  }, {
+    client,
+    runId: 'westie-existing',
+    env: {
+      SUPABASE_URL: 'https://example.supabase.co',
+      SUPABASE_SERVICE_ROLE_KEY: 'service-key',
+      SUPABASE_STORAGE_BUCKET: 'takpet-posters'
+    }
+  });
+
+  assert.deepEqual(updatedOptions.allowedMimeTypes, ['application/json', 'text/html', 'image/png', 'text/plain']);
   await rm(outputRoot, { recursive: true, force: true });
 });
 
