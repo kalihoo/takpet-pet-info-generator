@@ -41,8 +41,9 @@ export async function persistOutputToSupabase(output, options = {}) {
   const files = [
     { key: 'json', filePath: output.files.json, fileName: 'content.json', contentType: 'application/json' },
     { key: 'html', filePath: output.files.html, fileName: 'poster.html', contentType: 'text/html' },
-    { key: 'png', filePath: output.files.png, fileName: 'poster.png', contentType: 'image/png' }
-  ];
+    { key: 'png', filePath: output.files.png, fileName: 'poster.png', contentType: 'image/png' },
+    { key: 'markdown', filePath: output.files.markdown, fileName: 'copy.md', contentType: 'text/markdown' }
+  ].filter((file) => file.filePath);
 
   const uploaded = {};
   for (const file of files) {
@@ -73,7 +74,7 @@ async function ensureBucket(client, bucket, publicBucket, env) {
 
   const { error } = await client.storage.createBucket(bucket, {
     public: publicBucket,
-    allowedMimeTypes: ['application/json', 'text/html', 'image/png'],
+    allowedMimeTypes: ['application/json', 'text/html', 'image/png', 'text/markdown'],
     fileSizeLimit: '10MB'
   });
 

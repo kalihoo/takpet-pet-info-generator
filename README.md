@@ -1,13 +1,13 @@
 # TakPet 宠物信息自动化生成
 
-轻量 Node.js MVP：输入犬种，生成结构化宠物科普内容，用固定 HTML/CSS 模板导出 TakPet 风格海报。
+轻量 Node.js MVP：输入犬种、猫种或异宠名称，生成适合小红书的结构化内容包，用固定 HTML/CSS 模板导出 TakPet 风格海报，并保存 PNG/HTML/JSON/Markdown。
 
 ## 本地运行
 
 ```bash
 npm install
 npm test
-npm run generate -- --breed 西高地白梗
+npm run generate -- --name 英短 --species cat
 npm start
 ```
 
@@ -23,6 +23,7 @@ http://localhost:3000
 outputs/<犬种>/content.json
 outputs/<犬种>/poster.html
 outputs/<犬种>/poster.png
+outputs/<犬种>/copy.md
 ```
 
 在 Vercel 上运行时，本地输出目录会自动切到 `/tmp/takpet-outputs`，并可上传到 Supabase Storage 生成长期可访问 URL。
@@ -41,12 +42,23 @@ PAID_API_ENABLED=false
 
 这意味着项目会优先使用 Gemini API 的免费文本与检索能力，但默认不调用已知会产生费用的图片生成接口。只有显式设置 `PAID_API_ENABLED=true`，才允许 OpenAI 或 Gemini 图片生成这类付费 API。
 
-## 内容生成模式
+## 内容包生成模式
 
 - 设置 `GEMINI_API_KEY` 时优先调用 Gemini Interactions API，并启用 `google_search` 做在线资料检索。
 - `PAID_API_ENABLED=true` 且设置 `OPENAI_API_KEY` 时，才允许调用 OpenAI Responses API。
 - API 调用失败时，自动使用本地模板兜底。
-- 第一版只支持犬种，其他宠物类型留作后续优化。
+- 支持 `species=dog|cat|exotic`。
+- 内容包包含故事线、新手避坑、用品清单、环境/栖息地、片单灵感、小红书标题正文标签。
+
+API 示例：
+
+```json
+{
+  "name": "豹纹守宫",
+  "species": "exotic",
+  "contentTypes": ["storyline", "careGuide", "shoppingGuide", "habitat", "mediaRecommendations", "xiaohongshuCopy"]
+}
+```
 
 ## 图片生成模式
 
@@ -112,7 +124,7 @@ SUPABASE_STORAGE_ENSURE_BUCKET=true
 
 把 GitHub 仓库导入 Vercel，Framework 选择 `Other`，保持默认安装流程即可。`vercel.json` 已将 `src/server.js` 函数时长设置为 60 秒，适合 Gemini 请求加 Playwright 截图。
 
-生成后 API 会返回 Supabase Storage 的 `png/html/json` URL，文件不会依赖 Vercel 的临时目录。
+生成后 API 会返回 Supabase Storage 的 `png/html/json/markdown` URL，文件不会依赖 Vercel 的临时目录。
 
 ## Docker 部署
 

@@ -27,6 +27,7 @@ test('persistOutputToSupabase uploads JSON, HTML, and PNG outputs', async () => 
   await writeFile(path.join(outputRoot, 'content.json'), '{"ok":true}', 'utf8');
   await writeFile(path.join(outputRoot, 'poster.html'), '<html></html>', 'utf8');
   await writeFile(path.join(outputRoot, 'poster.png'), 'png', 'utf8');
+  await writeFile(path.join(outputRoot, 'copy.md'), '# copy', 'utf8');
 
   const uploads = [];
   const client = {
@@ -56,7 +57,8 @@ test('persistOutputToSupabase uploads JSON, HTML, and PNG outputs', async () => 
     files: {
       json: path.join(outputRoot, 'content.json'),
       html: path.join(outputRoot, 'poster.html'),
-      png: path.join(outputRoot, 'poster.png')
+      png: path.join(outputRoot, 'poster.png'),
+      markdown: path.join(outputRoot, 'copy.md')
     }
   }, {
     client,
@@ -71,12 +73,14 @@ test('persistOutputToSupabase uploads JSON, HTML, and PNG outputs', async () => 
 
   assert.equal(result.bucket, 'takpet-posters');
   assert.equal(result.path, 'posters/westie-test');
-  assert.equal(uploads.length, 3);
+  assert.equal(uploads.length, 4);
   assert.deepEqual(uploads.map((item) => item.objectPath), [
     'posters/westie-test/content.json',
     'posters/westie-test/poster.html',
-    'posters/westie-test/poster.png'
+    'posters/westie-test/poster.png',
+    'posters/westie-test/copy.md'
   ]);
+  assert.match(result.files.markdown.url, /copy\.md$/);
   assert.match(result.files.png.url, /poster\.png$/);
   assert.match(result.files.png.downloadUrl, /download=poster\.png$/);
   await rm(outputRoot, { recursive: true, force: true });
@@ -87,6 +91,7 @@ test('persistOutputToSupabase uses ASCII object paths for Chinese slugs', async 
   await writeFile(path.join(outputRoot, 'content.json'), '{"ok":true}', 'utf8');
   await writeFile(path.join(outputRoot, 'poster.html'), '<html></html>', 'utf8');
   await writeFile(path.join(outputRoot, 'poster.png'), 'png', 'utf8');
+  await writeFile(path.join(outputRoot, 'copy.md'), '# copy', 'utf8');
 
   let firstObjectPath;
   const client = {
@@ -114,7 +119,8 @@ test('persistOutputToSupabase uses ASCII object paths for Chinese slugs', async 
     files: {
       json: path.join(outputRoot, 'content.json'),
       html: path.join(outputRoot, 'poster.html'),
-      png: path.join(outputRoot, 'poster.png')
+      png: path.join(outputRoot, 'poster.png'),
+      markdown: path.join(outputRoot, 'copy.md')
     }
   }, {
     client,

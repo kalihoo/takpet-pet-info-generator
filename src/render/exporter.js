@@ -4,6 +4,7 @@ import { pathToFileURL } from 'node:url';
 import { chromium } from 'playwright';
 
 import { generateBreedImage } from '../content/image.js';
+import { renderCopyMarkdown } from './markdown.js';
 import { renderPosterHtml } from './poster.js';
 
 export async function exportPoster(content, options = {}) {
@@ -25,8 +26,10 @@ export async function exportPoster(content, options = {}) {
     breedImagePath: breedImage?.relativePath || null
   });
   const htmlPath = path.join(outputDir, 'poster.html');
+  const markdownPath = path.join(outputDir, 'copy.md');
   await writeFile(path.join(outputDir, 'content.json'), `${JSON.stringify(content, null, 2)}\n`, 'utf8');
   await writeFile(htmlPath, html, 'utf8');
+  await writeFile(markdownPath, renderCopyMarkdown(content), 'utf8');
   await writeScreenshot(path.join(outputDir, 'poster.png'), htmlPath);
 
   return {
@@ -35,7 +38,8 @@ export async function exportPoster(content, options = {}) {
     files: {
       json: path.join(outputDir, 'content.json'),
       html: path.join(outputDir, 'poster.html'),
-      png: path.join(outputDir, 'poster.png')
+      png: path.join(outputDir, 'poster.png'),
+      markdown: markdownPath
     }
   };
 }

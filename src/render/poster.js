@@ -1,4 +1,8 @@
 export function renderPosterHtml(content, options = {}) {
+  if (content.contentPack) {
+    return renderContentPackPosterHtml(content.contentPack, options);
+  }
+
   const safe = normalizeContent(content);
   const logoPath = options.logoPath || 'assets/logo.png';
   const breedImagePath = options.breedImagePath || null;
@@ -407,6 +411,297 @@ export function renderPosterHtml(content, options = {}) {
     </section>
 
     <footer class="footer">TakPet科普 | 科学养宠 · 快乐陪伴</footer>
+  </main>
+</body>
+</html>`;
+}
+
+function renderContentPackPosterHtml(pack, options = {}) {
+  const logoPath = options.logoPath || 'assets/logo.png';
+  const imagePath = options.breedImagePath || null;
+  const keyPoints = pack.posterSections.keyPoints.map((item) => `<li>${escapeHtml(item)}</li>`).join('');
+  const storyline = pack.storyline.map((item, index) => `
+    <article class="pack-step">
+      <b>${index + 1}</b>
+      <h3>${escapeHtml(item.label)}</h3>
+      <span>${escapeHtml(item.period)}</span>
+      <p>${escapeHtml(item.text)}</p>
+    </article>
+  `).join('');
+  const shopping = pack.shoppingGuide.mustHave.map((item) => `<li>${escapeHtml(item)}</li>`).join('');
+  const habitat = pack.habitat.setup.map((item) => `<li>${escapeHtml(item)}</li>`).join('');
+  const media = pack.mediaRecommendations.slice(0, 3).map((item) => `
+    <div class="media-item"><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.noteAngle)}</span></div>
+  `).join('');
+  const tags = pack.xiaohongshuCopy.hashtags.slice(0, 8).map((tag) => `<span>${escapeHtml(tag)}</span>`).join('');
+  const heroVisual = imagePath
+    ? `<img class="pack-visual" src="${escapeHtml(imagePath)}" alt="${escapeHtml(pack.name)}">`
+    : `<div class="pack-visual pack-placeholder"><strong>${escapeHtml(pack.name)}</strong><span>素材位：上传 / 图库 / 付费生图</span></div>`;
+
+  return `<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=1080, initial-scale=1">
+  <title>${escapeHtml(pack.profile.title)} - TakPet</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #edf2ea;
+      font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", Arial, sans-serif;
+      color: #162019;
+    }
+    .pack-poster {
+      width: 1080px;
+      height: 1440px;
+      overflow: hidden;
+      background: #fffdf5;
+      padding: 34px;
+      display: grid;
+      grid-template-rows: 314px 154px 330px 280px 202px 48px;
+      gap: 16px;
+    }
+    .pack-hero {
+      display: grid;
+      grid-template-columns: 128px 1fr 316px;
+      gap: 24px;
+      min-width: 0;
+    }
+    .pack-brand {
+      display: grid;
+      justify-items: center;
+      align-content: start;
+      gap: 8px;
+      color: #7b3f20;
+      font-size: 22px;
+      font-weight: 950;
+    }
+    .pack-brand img {
+      width: 106px;
+      height: 106px;
+      object-fit: contain;
+    }
+    .pack-title h1 {
+      margin: 0;
+      color: #145226;
+      font-size: 58px;
+      line-height: 1.04;
+      letter-spacing: 0;
+      font-weight: 950;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .pack-title h2 {
+      margin: 12px 0 14px;
+      font-size: 25px;
+      line-height: 1.25;
+      font-weight: 900;
+    }
+    .pack-summary {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.4;
+      font-weight: 650;
+      display: -webkit-box;
+      -webkit-line-clamp: 4;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .pack-visual {
+      width: 316px;
+      height: 270px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid #d8e2d3;
+      background: #e8f0e6;
+    }
+    .pack-placeholder {
+      display: grid;
+      place-items: center;
+      align-content: center;
+      text-align: center;
+      color: #145226;
+      gap: 10px;
+      padding: 20px;
+    }
+    .pack-placeholder strong { font-size: 34px; font-weight: 950; }
+    .pack-placeholder span { color: #647267; font-size: 16px; font-weight: 800; }
+    .pack-points {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .pack-points li {
+      background: #eef4ea;
+      border-left: 7px solid #79a95c;
+      border-radius: 8px;
+      padding: 16px 12px;
+      font-size: 18px;
+      line-height: 1.32;
+      font-weight: 900;
+      overflow: hidden;
+    }
+    .pack-steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+    .pack-step {
+      background: #fbf7ed;
+      border: 1px solid #ece5d5;
+      border-radius: 8px;
+      padding: 16px 14px;
+      overflow: hidden;
+    }
+    .pack-step b {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: #0f6c35;
+      color: #fff;
+      font-size: 20px;
+    }
+    .pack-step h3 {
+      margin: 10px 0 5px;
+      font-size: 22px;
+      line-height: 1.15;
+      font-weight: 950;
+    }
+    .pack-step span {
+      display: block;
+      margin-bottom: 8px;
+      color: #5d6b60;
+      font-size: 16px;
+      font-weight: 850;
+    }
+    .pack-step p {
+      margin: 0;
+      font-size: 17px;
+      line-height: 1.42;
+      font-weight: 650;
+      display: -webkit-box;
+      -webkit-line-clamp: 6;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .pack-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 14px;
+    }
+    .pack-card {
+      border: 1px solid #e0dfd2;
+      background: #fbfaf1;
+      border-radius: 8px;
+      padding: 18px 20px;
+      overflow: hidden;
+    }
+    .pack-card h3 {
+      margin: 0 0 12px;
+      color: #145226;
+      font-size: 25px;
+      font-weight: 950;
+    }
+    .pack-card ul {
+      margin: 0;
+      padding-left: 20px;
+      font-size: 17px;
+      line-height: 1.48;
+      font-weight: 700;
+    }
+    .media-item {
+      display: grid;
+      gap: 4px;
+      margin-bottom: 10px;
+      font-size: 16px;
+      line-height: 1.3;
+    }
+    .media-item strong { color: #17211c; font-size: 18px; }
+    .media-item span { color: #445148; font-weight: 650; }
+    .pack-copy {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 14px;
+      min-height: 0;
+    }
+    .copy-box {
+      background: #eef4ea;
+      border-radius: 8px;
+      padding: 20px 22px;
+      overflow: hidden;
+    }
+    .copy-box h3 {
+      margin: 0 0 10px;
+      color: #145226;
+      font-size: 25px;
+      font-weight: 950;
+    }
+    .copy-box p {
+      margin: 0;
+      font-size: 19px;
+      line-height: 1.45;
+      font-weight: 800;
+      display: -webkit-box;
+      -webkit-line-clamp: 5;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .tags span {
+      background: #fffdf5;
+      border: 1px solid #d8e2d3;
+      border-radius: 999px;
+      padding: 8px 11px;
+      color: #145226;
+      font-size: 16px;
+      font-weight: 900;
+    }
+    .pack-footer {
+      background: #0f4c26;
+      color: #fff;
+      display: grid;
+      place-items: center;
+      border-radius: 0 0 8px 8px;
+      font-size: 22px;
+      font-weight: 950;
+    }
+  </style>
+</head>
+<body>
+  <main class="pack-poster">
+    <section class="pack-hero">
+      <div class="pack-brand"><img src="${escapeHtml(logoPath)}" alt="TakPet logo"><span>TakPet科普</span></div>
+      <div class="pack-title">
+        <h1>${escapeHtml(pack.profile.title)}</h1>
+        <h2>${escapeHtml(pack.profile.subtitle)}</h2>
+        <p class="pack-summary">${escapeHtml(pack.profile.summary)}</p>
+      </div>
+      ${heroVisual}
+    </section>
+    <ul class="pack-points">${keyPoints}</ul>
+    <section class="pack-steps">${storyline}</section>
+    <section class="pack-grid">
+      <div class="pack-card"><h3>用品清单</h3><ul>${shopping}</ul></div>
+      <div class="pack-card"><h3>${escapeHtml(pack.habitat.title)}</h3><ul>${habitat}</ul></div>
+      <div class="pack-card"><h3>片单灵感</h3>${media}</div>
+    </section>
+    <section class="pack-copy">
+      <div class="copy-box"><h3>${escapeHtml(pack.xiaohongshuCopy.titles[0])}</h3><p>${escapeHtml(pack.xiaohongshuCopy.bodies[0])}</p></div>
+      <div class="copy-box"><h3>话题标签</h3><div class="tags">${tags}</div></div>
+    </section>
+    <footer class="pack-footer">TakPet科普 | 搜索型内容 · 收藏型清单 · 低成本产出</footer>
   </main>
 </body>
 </html>`;

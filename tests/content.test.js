@@ -2,6 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { generatePetContent } from '../src/content/generator.js';
+import { generateContentPack } from '../src/content/pack-generator.js';
+import { normalizeContentPack } from '../src/content/pack-normalizer.js';
 import { normalizeGeneratedContent, parseJsonText } from '../src/content/normalizer.js';
 
 test('generatePetContent returns a complete local fallback structure without an API key', async () => {
@@ -92,11 +94,57 @@ test('generatePetContent rejects an empty breed name', async () => {
   );
 });
 
-test('generatePetContent rejects unsupported species in the MVP', async () => {
+test('generatePetContent rejects unsupported species values', async () => {
   await assert.rejects(
-    () => generatePetContent({ breed: '英短', species: 'cat' }),
-    /only supports dog/
+    () => generatePetContent({ breed: '金鱼', species: 'fish' }),
+    /species must be one of dog, cat, exotic/
   );
+});
+
+test('generateContentPack returns a complete local dog content pack', async () => {
+  const contentPack = await generateContentPack({ name: '西高地白梗', species: 'dog' });
+
+  assert.equal(contentPack.name, '西高地白梗');
+  assert.equal(contentPack.species, 'dog');
+  assert.equal(contentPack.profile.suitableFor.length, 3);
+  assert.equal(contentPack.storyline.length, 4);
+  assert.equal(contentPack.careGuide.beginnerMistakes.length, 4);
+  assert.equal(contentPack.shoppingGuide.mustHave.length, 4);
+  assert.equal(contentPack.habitat.setup.length, 4);
+  assert.equal(contentPack.mediaRecommendations.length, 5);
+  assert.equal(contentPack.xiaohongshuCopy.titles.length, 10);
+  assert.equal(contentPack.xiaohongshuCopy.bodies.length, 3);
+  assert.equal(contentPack.xiaohongshuCopy.hashtags.length, 10);
+  assert.equal(contentPack.posterSections.storyline.length, 4);
+});
+
+test('generateContentPack supports cat and exotic species', async () => {
+  const catPack = await generateContentPack({ name: '英短', species: 'cat' });
+  const exoticPack = await generateContentPack({ name: '豹纹守宫', species: 'exotic' });
+
+  assert.equal(catPack.species, 'cat');
+  assert.match(catPack.habitat.title, /家庭|居家|环境/);
+  assert.equal(exoticPack.species, 'exotic');
+  assert.match(exoticPack.habitat.title, /栖息|环境|温湿度/);
+});
+
+test('generateContentPack rejects unsupported species values', async () => {
+  await assert.rejects(
+    () => generateContentPack({ name: '金鱼', species: 'fish' }),
+    /species must be one of dog, cat, exotic/
+  );
+});
+
+test('normalizeContentPack removes citation markers and fills copy fields', () => {
+  const pack = normalizeContentPack({
+    profile: { summary: '适合家庭陪伴。 [1, 2]' },
+    xiaohongshuCopy: { titles: ['英短新手指南 [3]'] }
+  }, { name: '英短', species: 'cat', source: 'test' });
+
+  assert.equal(pack.profile.summary, '适合家庭陪伴。');
+  assert.equal(pack.xiaohongshuCopy.titles[0], '英短新手指南');
+  assert.equal(pack.xiaohongshuCopy.bodies.length, 3);
+  assert.equal(pack.mediaRecommendations.length, 5);
 });
 
 test('normalizer removes grounding citation markers from generated content', () => {
