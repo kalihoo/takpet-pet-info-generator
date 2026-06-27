@@ -38,8 +38,8 @@ export async function persistOutputToSupabase(output, options = {}) {
   await ensureBucket(client, bucket, publicBucket, env);
 
   const files = [
-    { key: 'json', filePath: output.files.json, fileName: 'content.json', contentType: 'application/json; charset=utf-8' },
-    { key: 'html', filePath: output.files.html, fileName: 'poster.html', contentType: 'text/html; charset=utf-8' },
+    { key: 'json', filePath: output.files.json, fileName: 'content.json', contentType: 'application/json' },
+    { key: 'html', filePath: output.files.html, fileName: 'poster.html', contentType: 'text/html' },
     { key: 'png', filePath: output.files.png, fileName: 'poster.png', contentType: 'image/png' }
   ];
 
