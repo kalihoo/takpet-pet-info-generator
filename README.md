@@ -25,6 +25,8 @@ outputs/<犬种>/poster.html
 outputs/<犬种>/poster.png
 ```
 
+在 Vercel 上运行时，本地输出目录会自动切到 `/tmp/takpet-outputs`，并可上传到 Supabase Storage 生成长期可访问 URL。
+
 ## 免费优先策略
 
 默认配置：
@@ -70,6 +72,48 @@ assets/logo.png
 
 当前项目已经固定写入商业 Logo：`assets/logo.png`。
 
+## Vercel 免费部署 + Supabase Storage
+
+Vercel 不直接运行 Docker 镜像；本项目在 Vercel 上走 Node.js Runtime，在 VPS 上仍可用 Docker Compose。
+
+### 1. Supabase Storage 设置
+
+在 Supabase 新建项目后，推荐创建公开 bucket：
+
+```text
+takpet-posters
+```
+
+也可以不手动创建，让服务端使用 `SUPABASE_SERVICE_ROLE_KEY` 首次生成时自动创建 bucket。
+
+### 2. Vercel 环境变量
+
+在 Vercel Project Settings -> Environment Variables 添加：
+
+```env
+AI_PROVIDER=free-first
+TEXT_PROVIDER=gemini
+SEARCH_PROVIDER=gemini
+IMAGE_PROVIDER=none
+PAID_API_ENABLED=false
+GEMINI_API_KEY=你的 Gemini key
+GEMINI_TEXT_MODEL=gemini-2.5-flash
+SUPABASE_URL=https://你的项目.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=你的 Supabase service role 或 secret key
+SUPABASE_STORAGE_BUCKET=takpet-posters
+SUPABASE_STORAGE_PREFIX=posters
+SUPABASE_STORAGE_PUBLIC=true
+SUPABASE_STORAGE_ENSURE_BUCKET=true
+```
+
+`SUPABASE_SERVICE_ROLE_KEY` 只能放在 Vercel 服务端环境变量里，不能写入前端代码，也不要提交到 Git。
+
+### 3. 部署
+
+把 GitHub 仓库导入 Vercel，Framework 选择 `Other`，保持默认安装流程即可。`vercel.json` 已将 `src/server.js` 函数时长设置为 60 秒，适合 Gemini 请求加 Playwright 截图。
+
+生成后 API 会返回 Supabase Storage 的 `png/html/json` URL，文件不会依赖 Vercel 的临时目录。
+
 ## Docker 部署
 
 ```bash
@@ -77,4 +121,4 @@ cp .env.example .env
 docker compose up --build -d
 ```
 
-VPS 上建议把 `outputs` 目录作为持久化目录保留。当前开发机未安装 Docker，因此 Docker 构建需要在装有 Docker 的环境中验证。
+VPS 上可以继续把 `outputs` 目录作为持久化目录保留；如果配置了 Supabase 环境变量，也会同步上传到 Supabase Storage。

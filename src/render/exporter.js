@@ -71,6 +71,15 @@ async function writeScreenshot(target, htmlPath) {
 }
 
 async function launchBrowser() {
+  if (process.env.VERCEL) {
+    const serverlessChromium = (await import('@sparticuz/chromium')).default;
+    return chromium.launch({
+      args: serverlessChromium.args,
+      executablePath: await serverlessChromium.executablePath(),
+      headless: true
+    });
+  }
+
   try {
     return await chromium.launch({ headless: true });
   } catch (error) {

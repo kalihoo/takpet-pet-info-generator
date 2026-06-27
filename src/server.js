@@ -3,12 +3,14 @@ import express from 'express';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { getDefaultOutputRoot } from './config/runtime.js';
 import { generatePetContent } from './content/generator.js';
 import { exportPoster } from './render/exporter.js';
+import { persistOutputToSupabase } from './storage/supabase.js';
 
 export function createApp(options = {}) {
   const app = express();
-  const outputRoot = options.outputRoot || path.resolve('outputs');
+  const outputRoot = options.outputRoot || getDefaultOutputRoot();
 
   app.use(express.json({ limit: '1mb' }));
   app.use('/assets', express.static(path.resolve('assets')));
@@ -25,17 +27,16 @@ export function createApp(options = {}) {
         species: request.body?.species || 'dog'
       });
       const output = await exportPoster(content, { outputRoot });
+      const storage = await persistOutputToSupabase(output);
+      const urls = buildOutputUrls(output, storage);
       response.json({
         content,
         output: {
           slug: output.slug,
           dir: output.dir,
           files: output.files,
-          urls: {
-            html: `/outputs/${encodeURIComponent(output.slug)}/poster.html`,
-            png: `/outputs/${encodeURIComponent(output.slug)}/poster.png`,
-            json: `/outputs/${encodeURIComponent(output.slug)}/content.json`
-          }
+          urls,
+          storage
         }
       });
     } catch (error) {
@@ -44,6 +45,26 @@ export function createApp(options = {}) {
   });
 
   return app;
+}
+
+function buildOutputUrls(output, storage) {
+  if (storage?.files) {
+    return {
+      html: storage.files.html?.url,
+      png: storage.files.png?.url,
+      json: storage.files.json?.url,
+      downloads: {
+        html: storage.files.html?.downloadUrl,
+        png: storage.files.png?.downloadUrl,
+        json: storage.files.json?.downloadUrl
+      }
+    };
+  }
+  return {
+    html: `/outputs/${encodeURIComponent(output.slug)}/poster.html`,
+    png: `/outputs/${encodeURIComponent(output.slug)}/poster.png`,
+    json: `/outputs/${encodeURIComponent(output.slug)}/content.json`
+  };
 }
 
 function renderHomePage() {

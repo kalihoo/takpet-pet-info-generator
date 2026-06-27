@@ -15,6 +15,9 @@
 - [x] 配置 Gemini Google Search grounding。
 - [x] 配置 Gemini Nano Banana 图片生成，默认关闭以避免产生费用。
 - [x] 图片生成不可用时渲染犬种图片占位，不再复用 TakPet logo。
+- [x] 增加 Vercel 运行时 `/tmp` 输出目录适配。
+- [x] 接入 Supabase Storage，用于长期保存 `poster.png`、`poster.html`、`content.json`。
+- [x] 增加 Vercel Serverless Chromium 启动路径，提升 Playwright 截图在 Vercel 上的可运行性。
 - [x] 记录 Seedance 2.0 不适合作为静态图主链路的研究结论。
 - [x] 实现 Express Web 页面与 `POST /api/generate`。
 - [x] 实现 CLI：`npm run generate -- --breed 西高地白梗`。
@@ -26,6 +29,7 @@
 - [ ] 批量输入 50/100 个犬种，自动生成图包。
 - [ ] 增加猫类、异宠、不同海报主题模板。
 - [ ] 增加 Web 页面中的历史记录和下载入口。
+- [ ] 增加 Supabase 数据表，记录每次生成的 breed、source、storage path 和创建时间。
 - [ ] 增加定时任务，用于 VPS 每日自动生成内容。
 - [ ] 增加 Nginx/Caddy 反向代理和 HTTPS 部署示例。
 - [ ] 增加真实 TakPet 品牌字体、色板、Logo 多尺寸资产。
